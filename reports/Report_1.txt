@@ -1,0 +1,11 @@
+What is Orphan and Zombie processes?
+
+Ans > 
+Orphan : A process who's parent process terminates but the child remains running is known as an orphan process. It may be created accidentally or intentionally.
+Zombie : A process which has completed execution, but still has entry in the process table. The process deallocates the memory and resources on its end, while it's parent reads the exit status by wait() system call. That's when it is terminated.
+
+
+What are the changes that occur when the child process calls the exec system call to execute a new program?
+
+Ans> When a child calls exec() system call, a new executable file is executed in context of already existing process. At the back of it, the machine code,data, heap and stack in process table are replaced with by those of the new program, thus executing new program with the same PID.
+
