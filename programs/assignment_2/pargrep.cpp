@@ -29,17 +29,17 @@ void *thr_func(void *arg) {
   file.open(data->filename);
  
   if(file.good()){
-	file.seekg(data->start_line);
-	while(file and file.tellg() < data->end_line){
-		//pthread_mutex_lock(&lock);
-		std::getline(file,line);	
-	 	const char *line_arr = line.c_str();	
-		if (strstr(line_arr,data->word)){
-			data->sent.push_back(line_arr);
-			//printf("%s \n",line_arr);
-		}
-		//pthread_mutex_unlock(&lock);
-	}
+    file.seekg(data->start_line);
+    while(file and file.tellg() < data->end_line){
+        //pthread_mutex_lock(&lock);
+        std::getline(file,line);    
+         const char *line_arr = line.c_str();    
+        if (strstr(line_arr,data->word)){
+            data->sent.push_back(line_arr);
+            //printf("%s \n",line_arr);
+        }
+        //pthread_mutex_unlock(&lock);
+    }
   }
   pthread_exit(NULL);
 }
@@ -54,21 +54,27 @@ int main(int argc, char **argv) {
   std::fstream file;
 
  if (argc < 3){
-  	printf("Please enter number of threads, searching term and filename to initiate pargrep\n");
-	return EXIT_FAILURE;
+      printf("Please enter number of threads, searching term and filename to initiate pargrep\n");
+    return EXIT_FAILURE;
   }
   else if (argc==3){
-	strcpy(word,argv[1]);
-	strcpy(file_name,argv[2]);
-	n = 1;
+    strcpy(word,argv[1]);
+    strcpy(file_name,argv[2]);
+    n = 1;
   }  
   else{
-	n = atoi(argv[1]);
-	strcpy(word,argv[2]);
+    n = atoi(argv[1]);
+    strcpy(word,argv[2]);
         strcpy(file_name,argv[3]);
   }
   pthread_t thr[n];
   file.open(file_name);
+
+  if(!file.good())
+  {
+	printf("Please provide a valid input file\n");
+	return 1;
+  }
   file.seekg(0,file.end);
   int len = file.tellg();
   /* create a thread_data_t argument array */
@@ -76,7 +82,7 @@ int main(int argc, char **argv) {
   /* create threads */
   if (pthread_mutex_init(&lock, NULL) != 0)
    {
-	printf("\n mutex init has failed\n");
+    printf("\n mutex init has failed\n");
         return 1;
    }
   for (i = 0; i < n; ++i) {
@@ -98,13 +104,14 @@ int main(int argc, char **argv) {
   }
   for(i =0; i< n;i++)
   {
-	//printf("printing op for thread i = :%d \n",i);
- 	for (std::vector<std::string>::iterator it = thr_data[i].sent.begin() ; it != thr_data[i].sent.end(); ++it)
-	{
-		std::cout<< *it<<std::endl;
-	}
+    //printf("printing op for thread i = :%d \n",i);
+     for (std::vector<std::string>::iterator it = thr_data[i].sent.begin() ; it != thr_data[i].sent.end(); ++it)
+    {
+        std::cout<< *it<<std::endl;
+    }
   }
   pthread_exit(NULL);
   return EXIT_SUCCESS;
 }
+
 
