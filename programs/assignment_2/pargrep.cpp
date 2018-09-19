@@ -6,52 +6,58 @@
 #include <string.h>
 #include <typeinfo>
 #include <vector>
+#include <semaphore.h>
 
 pthread_mutex_t lock;
 int flag = 0;
-
-
+std::fstream file;
+std::vector <std::string> sent;
+sem_t sema;
 /* create thread argument struct for thr_func() */
 typedef struct _thread_data_t {
-  char filename[100];
-  int start_line;
-  int end_line;
   char word[100];
-  std::vector <std::string> sent;
 } thread_data_t;
  
 /* thread function */
 void *thr_func(void *arg) {
   thread_data_t *data = (thread_data_t *)arg;
   std::string line;
-  std::fstream file;
+  //std::fstream file;
 
-  file.open(data->filename);
- 
-  if(file.good()){
-    file.seekg(data->start_line);
-    while(file and file.tellg() < data->end_line){
-        //pthread_mutex_lock(&lock);
-        std::getline(file,line);    
-         const char *line_arr = line.c_str();    
-        if (strstr(line_arr,data->word)){
-            data->sent.push_back(line_arr);
-            //printf("%s \n",line_arr);
-        }
-        //pthread_mutex_unlock(&lock);
-    }
+  if(file.good())
+  {
+	while(1)
+	{
+		pthread_mutex_lock(&lock);
+		//sem_wait(&sema);
+		if(file.tellg()< 0)
+		{
+			pthread_mutex_unlock(&lock);
+			//sem_post(&sema);
+			pthread_exit(NULL);
+		}
+		std::getline(file,line);  
+         	const char *line_arr = line.c_str();    
+	        if (strstr(line_arr,data->word))
+		{
+			sent.push_back(line_arr);
+			//std::cout<<line<<std::endl;
+		}
+		pthread_mutex_unlock(&lock);
+		//sem_post(&sema);
+	}
   }
   pthread_exit(NULL);
 }
  
 int main(int argc, char **argv) {
+  //printf("inside main\n");
   int i, rc;
   int n;
   char word[100];
   char file_name[100];
 
   std::string line;
-  std::fstream file;
 
  if (argc < 3){
       printf("Please enter number of threads, searching term and filename to initiate pargrep\n");
@@ -68,6 +74,7 @@ int main(int argc, char **argv) {
         strcpy(file_name,argv[3]);
   }
   pthread_t thr[n];
+  //std::fstream file;
   file.open(file_name);
 
   if(!file.good())
@@ -75,22 +82,25 @@ int main(int argc, char **argv) {
 	printf("Please provide a valid input file\n");
 	return 1;
   }
-  file.seekg(0,file.end);
-  int len = file.tellg();
-  /* create a thread_data_t argument array */
+  //file.seekg(0,file.end);
+  //int len = file.tellg();
+ /* create a thread_data_t argument array */
   thread_data_t thr_data[n];
-  /* create threads */
+
+  int start_line = 0;
+ /* create threads */
   if (pthread_mutex_init(&lock, NULL) != 0)
    {
     printf("\n mutex init has failed\n");
         return 1;
    }
+  if(sem_init(&sema, 0, 1) != 0)
+  {
+	printf("sem init failed\n");
+	return 1;
+  }
+  //printf("sem init successful\n");
   for (i = 0; i < n; ++i) {
-    //thr_data[i].filename = file_name;
-    thr_data[i].start_line = len*i/n;
-    thr_data[i].end_line   = (i<n-1)?(len*(i+1)/n)+1:len;
-    strcpy(thr_data[i].filename, file_name);
-    //thr_data[i].file = &file;
     strcpy(thr_data[i].word,word);
     if ((rc = pthread_create(&thr[i], NULL, thr_func, &thr_data[i]))) {
       fprintf(stderr, "error: pthread_create, rc: %d\n", rc);
@@ -102,14 +112,13 @@ int main(int argc, char **argv) {
     pthread_join(thr[i], NULL);
 
   }
-  for(i =0; i< n;i++)
-  {
-    //printf("printing op for thread i = :%d \n",i);
-     for (std::vector<std::string>::iterator it = thr_data[i].sent.begin() ; it != thr_data[i].sent.end(); ++it)
-    {
-        std::cout<< *it<<std::endl;
-    }
-  }
+//printf("printing op for thread i = :%d \n",i);
+for (std::vector<std::string>::iterator it = sent.begin() ; it != sent.end(); ++it)
+{
+std::cout<< *it<<std::endl;
+}
+
+  sem_destroy(&sema); 
   pthread_exit(NULL);
   return EXIT_SUCCESS;
 }
