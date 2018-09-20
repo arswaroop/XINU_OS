@@ -1,0 +1,98 @@
+1.Concurrency and design decisions
+
+Concurrency approach 1:  
+Divide the input file by number of threads.
+
+Build using make command.
+How to run 	: ./pargrep [-t] "term to search" file
+OR
+		: grep file | ./pargrep "term to search"
+
+Explanation to approach:
+
+Step 1: Get the size of file by calling seek()
+Step 2: Divide the size by number of inputs
+Step 3: Adjust the offset to end of line
+Step 4: Pass the offsets to threads
+Step 5: Initialize and join the threads 
+// Inside thread
+--Step 6: Open file descriptors using the passed parameter filename 
+--Step 7: Store outputs in a buffer
+//
+Step 8: Stitch the output after all the threads have exited.
+
+Maintaining Concurrency:
+As threads are employed on seperate file descriptors, this program does not face concurrency issues while reading.
+But, if the output is printed inside the thread there may be concurrency issues. This is being handeled using thread-unique buffer which are printed when threads exit in order to maintain concurrency.
+
+This approach gave better results than approach 2 and grep in some cases.
+The reason for this might be because of divided input that threads handle and run concurrently.
+The time seems to increase after a certain number of threads are employed as the overhead increases.
+This 
+ 
+////////////
+
+Concurrency approach 2:
+
+Build 	: gcc  method1.cpp -o method1 -lstdc++ -lpthread
+Run	: ./method1 [-t] word file
+NOTE	: This program does not work for piped input
+
+Read input dynamically using mutex 
+Step 1: Check for number of arguments
+Step 2: Initialize a global file descriptor and mutex
+Step 3: Initialize and join the threads
+//Inside thread
+--Step 4: Acquire mutex lock for reading a line from the file
+--Step 5: Read a line and print if match is found
+--Step 6: Release the lock
+//
+
+Maintaining Concurrency:
+Here as only one file descriptor is used, using Mutex or Semaphore would be required.
+The lock is over read and write function too. In order to save some lock time, output is stored in common buffer, which is printed later, when threads are executed.
+
+This approach proves to be slower as threads wait for lock release. There is trade off for time vs concurrency in this approach.
+
+////////////////////////////////////////////////////////////////
+2.Performance Analysis
+
+time ./pargrep 23 the 1342-0.txt
+real	0m0.018s
+user	0m0.010s
+sys	0m0.016s
+
+time grep the 1342-0.txt
+real	0m0.026s
+user	0m0.011s
+sys	0m0.010s
+
+time ./pargrep 23 rand 1342-0.txt
+real	0m0.007s
+user	0m0.006s
+sys	0m0.012s
+
+time grep rand 1342-0.txt
+real	0m0.003s
+user	0m0.002s
+sys	0m0.001s
+
+We see that the parallel processes are not helping grep run significantly faster, in some cases it is slower than normal grep.
+
+############################
+Approach 2 : One line for each thread using mutex
+
+time ./pargrep 5 the 1342-0.txt
+real	0m0.049s
+user	0m0.016s
+sys	0m0.045s
+
+time grep the 1342-0.txt
+real	0m0.026s
+user	0m0.011s
+sys	0m0.010s
+
+Analysis: Here probable cause of delay is lenthy mutex, which is necessary when accessing the file one line at a time.
+Here the overhead of splitting the file is reduced as we access the file line by line usinf just one file pointer.
+###################
+

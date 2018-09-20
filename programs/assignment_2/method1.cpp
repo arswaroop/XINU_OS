@@ -89,20 +89,12 @@ int main(int argc, char **argv) {
 	  if(i == n-1)
 	  {
 	  	thr_data[i].end_line = end_line-1;
-	  	//printf("start: %d end : %d \n",start_line,end_line-1);
 		break;
 	  }
 	  file.seekg(end_line);
 	  std::getline(file,line);
 	  end_line = file.tellg();
 	  thr_data[i].end_line = end_line-1;
-	  //printf("start: %d end : %d \n",start_line,end_line-1);
-	  //file.seekg(end_line);
-	  //std::getline(file,line);
-	  //printf("start: %s\n",line.c_str());
-	  //file.seekg(end_line-10);
-	  //std::getline(file,line);
-	  //printf("end: %s\n",line.c_str());
 	  start_line = end_line;
   }
  /* create threads */
@@ -112,11 +104,7 @@ int main(int argc, char **argv) {
         return 1;
    }
   for (i = 0; i < n; ++i) {
-    //thr_data[i].filename = file_name;
-    //thr_data[i].start_line = len*i/n;
-    //thr_data[i].end_line   = (i<n-1)?(len*(i+1)/n)+1:len;
     strcpy(thr_data[i].filename, file_name);
-    //thr_data[i].file = &file;
     strcpy(thr_data[i].word,word);
     if ((rc = pthread_create(&thr[i], NULL, thr_func, &thr_data[i]))) {
       fprintf(stderr, "error: pthread_create, rc: %d\n", rc);
@@ -130,7 +118,6 @@ int main(int argc, char **argv) {
   }
   for(i =0; i< n;i++)
   {
-    //printf("printing op for thread i = :%d \n",i);
      for (std::vector<std::string>::iterator it = thr_data[i].sent.begin() ; it != thr_data[i].sent.end(); ++it)
     {
         std::cout<< *it<<std::endl;
