@@ -7,6 +7,9 @@
 #include <typeinfo>
 #include <vector>
 #include <semaphore.h>
+#include <unistd.h>
+#include <cstdlib>
+#define DEFAULT_BUF_LENGTH (16 * 16384)
 
 pthread_mutex_t lock;
 int flag = 0;
@@ -41,7 +44,6 @@ void *thr_func(void *arg) {
 	        if (strstr(line_arr,data->word))
 		{
 			sent.push_back(line_arr);
-			//std::cout<<line<<std::endl;
 		}
 		pthread_mutex_unlock(&lock);
 		//sem_post(&sema);
@@ -51,22 +53,47 @@ void *thr_func(void *arg) {
 }
  
 int main(int argc, char **argv) {
-  //printf("inside main\n");
   int i, rc;
   int n;
   char word[100];
   char file_name[100];
-
+  char buf[DEFAULT_BUF_LENGTH];
   std::string line;
-
- if (argc < 3){
-      printf("Please enter number of threads, searching term and filename to initiate pargrep\n");
-    return EXIT_FAILURE;
-  }
+  size_t read;
+  if (argc ==2){
+	FILE* temp;
+	temp  = fopen("input.txt","w");
+	char c;
+	if (temp!=NULL)
+	{
+		while (c!= EOF)
+		{
+			c = std::fgetc(stdin);
+			fputc(c,temp);
+		}
+	}
+	fclose (temp);
+	strcpy(file_name,"input.txt");
+    	strcpy(word,argv[1]);
+	n =1;
+	//while(std::cin>>buf) 
+	//for (int i =0; i< 2; i++)
+	}
   else if (argc==3){
     strcpy(word,argv[1]);
     strcpy(file_name,argv[2]);
     n = 1;
+// Handling cases for piped input
+/*    try
+    {
+	strtol( const char *str, char **str_end, int base );	
+    }
+    catch
+    {
+	
+    }
+*/
+
   }  
   else{
     n = atoi(argv[1]);
@@ -76,7 +103,6 @@ int main(int argc, char **argv) {
   pthread_t thr[n];
   //std::fstream file;
   file.open(file_name);
-
   if(!file.good())
   {
 	printf("Please provide a valid input file\n");
@@ -99,7 +125,6 @@ int main(int argc, char **argv) {
 	printf("sem init failed\n");
 	return 1;
   }
-  //printf("sem init successful\n");
   for (i = 0; i < n; ++i) {
     strcpy(thr_data[i].word,word);
     if ((rc = pthread_create(&thr[i], NULL, thr_func, &thr_data[i]))) {
