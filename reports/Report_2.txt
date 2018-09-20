@@ -55,9 +55,47 @@ The lock is over read and write function too. In order to save some lock time, o
 This approach proves to be slower as threads wait for lock release. There is trade off for time vs concurrency in this approach.
 
 ////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
 2.Performance Analysis
 
-time ./pargrep 23 the 1342-0.txt
+Approach 1 : One line for each thread using mutex
+
+
+time ./pargrep 5 the 1342-0.txt
+real	0m0.049s
+user	0m0.016s
+sys	0m0.045s
+
+time ./pargrep 13 the 1342-0.txt 
+real	0m0.054s
+user	0m0.021s
+sys	0m0.063s
+
+time ./pargrep the 1342-0.txt 
+real	0m0.040s
+user	0m0.004s
+sys	0m0.015s
+
+time grep the 1342-0.txt
+real	0m0.026s
+user	0m0.011s
+sys	0m0.010s
+
+Analysis: Here probable cause of delay is lenthy mutex, which is necessary when accessing the file one line at a time.
+Here the overhead of splitting the file is reduced as we access the file line by line usinf just one file pointer.
+
+
+###################
+
+Using Approach 2:
+
+threads
+time ./method1 2 the 1342-0.txt >a.out
+
+real	0m0.036s
+user	0m0.003s
+sys	0m0.014s
+time ./method1 23 the 1342-0.txt
 real	0m0.018s
 user	0m0.010s
 sys	0m0.016s
@@ -67,7 +105,8 @@ real	0m0.026s
 user	0m0.011s
 sys	0m0.010s
 
-time ./pargrep 23 rand 1342-0.txt
+
+time ./method1 23 rand 1342-0.txt
 real	0m0.007s
 user	0m0.006s
 sys	0m0.012s
@@ -78,21 +117,4 @@ user	0m0.002s
 sys	0m0.001s
 
 We see that the parallel processes are not helping grep run significantly faster, in some cases it is slower than normal grep.
-
-############################
-Approach 2 : One line for each thread using mutex
-
-time ./pargrep 5 the 1342-0.txt
-real	0m0.049s
-user	0m0.016s
-sys	0m0.045s
-
-time grep the 1342-0.txt
-real	0m0.026s
-user	0m0.011s
-sys	0m0.010s
-
-Analysis: Here probable cause of delay is lenthy mutex, which is necessary when accessing the file one line at a time.
-Here the overhead of splitting the file is reduced as we access the file line by line usinf just one file pointer.
-###################
 
