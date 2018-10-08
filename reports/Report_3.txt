@@ -1,0 +1,63 @@
+//////////////////////////////////////////////////////////// FUTURES ///////////////////////////////////////////
+
+############################## References #######################################
+
+http://en.wikipedia.org/wiki/Futures_and_promises - for overview of topic
+http://docs.scala-lang.org/sips/completed/futures-promises.html - similar examples in scala
+https://en.cppreference.com/w/cpp/thread/future - a similar library in c++ that gives overview of the topic
+
+An approach similar to XINU's source code has been applied to the code
+
+############################### Data structures ####################################
+
+In addition to the given data structures, a linked list was used for maintaining a FIFO queue for Futures.
+
+struct future_qnode{
+        pid32  pid;
+        int set_val;
+        struct future_qnode* next;
+        struct future_qnode* prev;
+}future_qnode;
+typedef struct future_qnode* future_q;
+
+Where: 
+pid 		- pid for cirrent thread
+set_val 	- is value to indicate first and last node
+next, prev	- pointers to next and previous nodes in the linked list
+
+############################## Future Queues ######################################
+
+A fifo queue was implemented in system/future_q.c file which maintains and manupulated the get_queue and set_queue in the future_t data structure.
+
+The purpose if this queue is to maintain a queue to keep track of producers and consumers
+The function involve 
+future_q new_q();				-	Allocates space and returns a pointer to that space
+int fq_isempty(future_q);			-	Checks if the queue is empty
+int future_enqueue(future_q head, pid32 pid);	-	Enqueue the given pid for the future_q
+pid32 future_dequeue(future_q head);		-	Dequeues the top element
+int free_q(future_q head);			-	Frees the memory allocated head and tail nodes
+
+
+########################### Futures #########################################
+
+//// Exclusive futures 
+
+Having just one producer and consumer.
+The producer checks if consumer is ready, and if ready allocate the given value to consumer.
+The consumer checks if producer is readu, and if redy allocate the given value to consumer.
+In case of more that one procucer or consumer show in this mode, the program returns an error/
+
+///// Shared mode
+
+This mode supports multiple consumers for a single producer.
+This is done by adding the waiting consumers to a queue and suspending them temporarily until a producer is found
+The queue is added and maintained for consumers using the future_q library
+
+//// Qeueu mode
+
+This mode allows multiple consumers and multiple producers.
+Two separate queues are maintained both for producer as well as consumer.
+Whenever a producer is ready but consumer is not, it enters the producer queue and suspends until a call is made by consumer.
+Likewise a consumer is ready before a producer, it enters the consumer queue and suspends until a call is made by producer.
+
+

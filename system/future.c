@@ -147,7 +147,7 @@ syscall future_set(future_t* f, int value)
 			f->state = FUTURE_READY;
 			resume(f->pid);
 		}
-		// SET>>EXCLUSIVE>>EMPTY // An empty future 
+		// SET>>EXCLUSIVE>>EMPTY // An empty future state required the value and changes the state 
 		else if( f->state == FUTURE_EMPTY)
 		{
 			f->value = value;

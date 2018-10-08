@@ -1,6 +1,7 @@
 #ifndef _FUTURE_H_
 #define _FUTURE_H_  
 
+// Additional data structure NODE for maintaining a FIFO list for futures
 typedef struct future_qnode{
 	pid32  pid;
 	int set_val;
