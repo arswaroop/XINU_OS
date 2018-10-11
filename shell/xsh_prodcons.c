@@ -1,12 +1,15 @@
 #include <xinu.h>
 #include <prodcons.h>
 #include <future.h>
+#include <string.h>
+//#include <string.h>
 //#include "../apps/future_prodcons.c"
 
 sid32 produced, consumed;
 
 shellcmd xsh_prodcons(int nargs, char *args[])
 {
+	printf("Hello World!\n");
       //Argument verifications and validations
   produced = semcreate(0);
   consumed = semcreate(1);
@@ -42,7 +45,8 @@ shellcmd xsh_prodcons(int nargs, char *args[])
   resume( create(future_cons, 1024, 20, "fcons4", 1, f_shared) ); 
   resume( create(future_cons, 1024, 20, "fcons5", 1, f_shared) );
   resume( create(future_prod, 1024, 20, "fprod2", 2, f_shared, 2) );
-
+  resume( create(future_prod, 1024, 20, "fprod2", 2, f_shared, 12) );
+  resume( create(future_cons, 1024, 20, "fcons4", 1, f_shared) ); 
   // Test FUTURE_QUEUE
   resume( create(future_cons, 1024, 20, "fcons6", 1, f_queue) );
   resume( create(future_cons, 1024, 20, "fcons7", 1, f_queue) );
@@ -52,6 +56,8 @@ shellcmd xsh_prodcons(int nargs, char *args[])
   resume( create(future_prod, 1024, 20, "fprod4", 2, f_queue, 4) );
   resume( create(future_prod, 1024, 20, "fprod5", 2, f_queue, 5) );
   resume( create(future_prod, 1024, 20, "fprod6", 2, f_queue, 6) );
+  future_free( f_shared);
+sleep(0.05);
 return(0);
  }
 

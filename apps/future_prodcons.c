@@ -1,12 +1,13 @@
 #include <xinu.h>
 #include <future.h>
 uint future_prod(future_t* fut,int n) {
-  future_set(fut, n);
   printf("Produced %d\n",n);
+  future_set(fut, n);
   return OK;
 }
 
 uint future_cons(future_t* fut) {
+  //sleep(100);
   int i, status;
   status = (int)future_get(fut, &i);
   if (status < 1) {

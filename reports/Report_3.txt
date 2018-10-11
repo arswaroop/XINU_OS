@@ -45,13 +45,14 @@ int free_q(future_q head);			-	Frees the memory allocated head and tail nodes
 Having just one producer and consumer.
 The producer checks if consumer is ready, and if ready allocate the given value to consumer.
 The consumer checks if producer is readu, and if redy allocate the given value to consumer.
-In case of more that one procucer or consumer show in this mode, the program returns an error/
-
+In case of more that one procucer or consumer show in this mode, the program returns an error.
+Have used suspended a consumer to keep it in waiting mode and resume once a producer sets a value.
 ///// Shared mode
 
 This mode supports multiple consumers for a single producer.
-This is done by adding the waiting consumers to a queue and suspending them temporarily until a producer is found
-The queue is added and maintained for consumers using the future_q library
+This is done by adding the waiting consumers to a queue and suspending them temporarily until a producer is found.
+The queue is added and maintained for consumers using the future_q library.
+The consumer process in the queue are suspended temporarily until a producer resums the consumer by fetching the pid using dequeue.
 
 //// Qeueu mode
 
@@ -59,5 +60,6 @@ This mode allows multiple consumers and multiple producers.
 Two separate queues are maintained both for producer as well as consumer.
 Whenever a producer is ready but consumer is not, it enters the producer queue and suspends until a call is made by consumer.
 Likewise a consumer is ready before a producer, it enters the consumer queue and suspends until a call is made by producer.
+The processes in the get_queue and set_queue are suspended temporarily until it resumed by its corresponding process.
 
 

@@ -42,9 +42,10 @@ syscall future_free(future_t* f)
 		( f->mode == FUTURE_QUEUE && free_q(f->set_queue) && free_q(f->get_queue)  ))
 	{
 		freemem((char*)f, sizeof(future_t));
+		return OK;
 	}
 	
-	return OK;
+	return SYSERR;
 	
 }
 
@@ -92,13 +93,13 @@ syscall future_get(future_t* f, int* value)
 		// GET>SHARED>READY // Allocates a value to all the consumers in the queue
 		else if (f->state == FUTURE_READY)
 		{
-			pid32 pid;
-			while ((pid = future_dequeue(f->get_queue)))
-			{
-				resume(pid);
-			}
+//			pid32 pid;
+//			while ((pid = future_dequeue(f->get_queue)))
+//			{
+//				resume(pid);
+//			}
 			*value =(int) f->value;
-			future_free(f);	
+			//future_free(f);	
 		}
 	}
 	// GET>>QUEUE // Queues consumers and producers	
@@ -155,18 +156,24 @@ syscall future_set(future_t* f, int value)
 		}
 
 	}
+	// SET>>SHARED // Shared mode allows multiple consumers and 1 producer 
 	if (f->mode == FUTURE_SHARED)
 	{
-		
+		// SET>>SHARED>READY // If the value has been produced, it can not be set again by another producer, hence error.
 		if (f->state == FUTURE_READY)
 		{
+			printf("Invalid produce!\n");
+			//suspend(getpid());
 			return SYSERR;
 		}
+		// SET>>SHARED>>EMPTY // If the future is empty, the value can be set and state can be changed to ready.
 		else if (f->state == FUTURE_EMPTY)
 		{
 			f->value = value;
 			f->state = FUTURE_READY;
 		}
+		// SET>>SHARED>>WAITING // In this case, all the processes in waiting should be resumed to read the value in future.
+		// This is achieved using a while loop to resume process until the queue is vacant.
 		else if (f->state == FUTURE_WAITING)
 		{
 			f->state = FUTURE_READY;
@@ -176,35 +183,44 @@ syscall future_set(future_t* f, int value)
                         {
                                 resume(pid);
                         }
-			future_free(f);
+			//future_free(f);
 		}
 	}
+	// SET>> QUEUE // This variation can handle multiple produces and consumers
 	if (f->mode == FUTURE_QUEUE)
-	{
+	{	
+		// CHECKS FOR NULL QUEUE
 		if (f->get_queue == NULL)
 		{
 			return SYSERR;
 		}
+		// There are no modes in this 
 		if (fq_isempty(f->get_queue))
 		{
 			pid32  pid;
-			pid = future_enqueue(f->set_queue, getpid());
+			pid = getpid();
+			future_enqueue(f->set_queue, getpid());
 			suspend(pid);
 			f->value = value;
 			return OK;
 		}
 		else
 		{
-			//printf(": Inside set mode:%d state:%d\<<<<<getqueue is empty n",f->mode, f->state);
 			f->value = value;
 			pid32 pid;
 			pid = future_dequeue(f->get_queue);
 			resume(pid);
 		}
 	}	
-	//restore(mask);
 	return OK;
 
 
 }
+
+
+
+
+
+
+
 

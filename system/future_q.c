@@ -7,8 +7,8 @@ future_q new_q()
 	future_q head = (future_q)getmem(sizeof(struct future_qnode));
 	future_q tail = (future_q)getmem(sizeof(struct future_qnode));
 	
-	head->set_val = MAXKEY;
-	tail->set_val = MINKEY;
+	head->set_val = MAXKEY;	// For Head
+	tail->set_val = MINKEY;	// For Tail
 
 	head->next = tail;
 	head->prev = NULL;
