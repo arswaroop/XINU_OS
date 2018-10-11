@@ -1,7 +1,7 @@
 #include <xinu.h>
 #include <prodcons.h>
 #include <future.h>
-#include <string.h>
+//#include <string.h>
 //#include <string.h>
 //#include "../apps/future_prodcons.c"
 
@@ -9,7 +9,6 @@ sid32 produced, consumed;
 
 shellcmd xsh_prodcons(int nargs, char *args[])
 {
-	printf("Hello World!\n");
       //Argument verifications and validations
   produced = semcreate(0);
   consumed = semcreate(1);
