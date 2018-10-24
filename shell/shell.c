@@ -10,6 +10,7 @@
 const	struct	cmdent	cmdtab[] = {
 	{"argecho",	TRUE,	xsh_argecho},
 	{"cat",		FALSE,	xsh_cat},
+	{"segmem",	FALSE,	xsh_segmem},
 	{"clear",	TRUE,	xsh_clear},
 	{"hello",	FALSE,	xsh_hello},
 	{"date",	FALSE,	xsh_date},
