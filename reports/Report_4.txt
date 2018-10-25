@@ -1,5 +1,9 @@
 //// Buffer Pools////////
-
+Steps to run the test program.
+1. Compile the xinu by make command
+2. Make qemu
+3. type command 'segmem' in xinu shell
+NOTE: There are no seperate xsh commands for xmalloc,xmalloc_init of xfree or xheap_snapshot. These can be called after '#include segmem.c' statement. 
 -----------Data strucures ------------
 The structure is used to maintain a linked list of fragmented space.
 
@@ -41,9 +45,10 @@ While freeing the memoty, it checks for pool id by traversing -4 bytes
 Before calling freebuf(), it checks for fragmentation in the linked list and updates the allocated memory bytes accordingly.
 If the user passes an arbitary pointer, the program handles by printing an error.
 
---
+---------------- Part 2 : --------------
 const char* xheap_snapshot()
 
 xheap_snapshot gives snapshot of the memory status at that point.
 The function calls the array to get the requested statistics.
-
+The choice of array to store the stats of allocated memory and buffers is for convinience of getting the stats from one array.
+--------
