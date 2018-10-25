@@ -24,7 +24,7 @@ void xmalloc_init()
 		head->bufptr = 0;
 		head->size = 0;
 		
-		buffers[i-1][0] = mkbufpool(32*shift, BUF_SIZE);
+		buffers[i-1][0] = mkbufpool( 8 *shift, BUF_SIZE);
 		buffers[i-1][1] = 0; // Allocated bytes
 		buffers[i-1][2] = 0; // Allocated buffers
 		buffers[i-1][3] = (uint32) head; // Pointer to linked list
@@ -47,7 +47,7 @@ void* xmalloc(int size)
 	int shift = 1;
 	for (i =1; i<= NUM_BUFFERS; i++)
 	{
-		if(size <= 32* shift)
+		if(size <=  8 * shift)
 		{
 			// Check if buffer empty
 			if (buffers[i-1][2] >= BUF_SIZE)
@@ -68,7 +68,7 @@ void* xmalloc(int size)
 			leftover_list leftover = (leftover_list)getmem(sizeof(struct leftover_block));
 			leftover->next = ((leftover_list)buffers[i-1][3])->next;
 			leftover->bufptr =(uint32) buf;
-			leftover->size =(uint32) 32*shift -size;
+			leftover->size =(uint32) 8*shift -size;
 			((leftover_list)buffers[i-1][3])->next = leftover;
 			return (void *)buf;
 		}
@@ -98,8 +98,7 @@ void xfree(void* ptr)
 				// Change the allocated size and free the node from linked list
 				if ((void*)leftover->bufptr == ptr)
 				{
-					printf("%d\n",shift);
-					buffers[i][1] -= (32*shift - leftover->size);
+					buffers[i][1] -= (8*shift - leftover->size);
 					buffers[i][2] -= 1;
 					prev->next = leftover->next;
 					if (freebuf((void*)ptr) == SYSERR)
@@ -114,7 +113,7 @@ void xfree(void* ptr)
 		}
 		shift *=2;
 	}
-	printf("The pointer could not be found in the buffer pools");
+	printf("The pointer could not be found in the buffer pools\n");
 }
 // Function for snapshot of memory
 const char* xheap_snapshot()
@@ -127,7 +126,7 @@ const char* xheap_snapshot()
 	for(i=0; i< NUM_BUFFERS; i++)
 	{
 		char buffer[1024];
-		sprintf(buffer, "pool_id=%d,buffer_size=%d, total_buffers=%d, allocated_bytes=%d, allocated_buffers=%d, fragmented_bytes=%d \n",buffers[i][0], 32*shift,BUF_SIZE, buffers[i][1],buffers[i][2], 32* shift *buffers[i][2] -buffers[i][1]);
+		sprintf(buffer, "pool_id=%d,buffer_size=%d, total_buffers=%d, allocated_bytes=%d, allocated_buffers=%d, fragmented_bytes=%d \n",buffers[i][0], 8*shift,BUF_SIZE, buffers[i][1],buffers[i][2], 8* shift *buffers[i][2] -buffers[i][1]);
 		int j = 0;
 		while (buffer[j] != '\0')
 		{

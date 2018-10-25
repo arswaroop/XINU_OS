@@ -1,7 +1,7 @@
 #ifndef _SEGMEM_H_
 #define _SEGMEM_H_
 
-#define NUM_BUFFERS 15 
+#define NUM_BUFFERS 11 
 
 // Structure to save fragmented memory
 typedef struct leftover_block{
