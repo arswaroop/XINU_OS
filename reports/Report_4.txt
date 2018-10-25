@@ -51,4 +51,5 @@ const char* xheap_snapshot()
 xheap_snapshot gives snapshot of the memory status at that point.
 The function calls the array to get the requested statistics.
 The choice of array to store the stats of allocated memory and buffers is for convinience of getting the stats from one array.
+Returning a string was a challange as we are not allowed to return internal pointers. Hence a decision on making the pointer const helped with tackling that challange. Another option would be to use malloc and pass the address to user, who is responsible for freeing the memory once it receives it.
 --------
