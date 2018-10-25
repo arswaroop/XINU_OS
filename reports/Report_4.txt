@@ -1,0 +1,49 @@
+//// Buffer Pools////////
+
+-----------Data strucures ------------
+The structure is used to maintain a linked list of fragmented space.
+
+typedef struct leftover_block{
+        uint32 bufptr;
+        uint32 size;
+        struct leftover_block* next;
+}leftover_block;
+
+--
+
+An array to store stats of a pool
+bpid32 buffers[NUM_BUFFERS][4];
+
+----------- Part 1 : -------------
+
+Explaination of each function in system/segmem.c
+
+--
+xmalloc_init() 
+
+Xmalloc_init request buffer pools of various sizes and initializes the buffers[][] array.
+The choice of memory size is made to have least fragments by having memory in multiples of 2^n, starting from 8.
+Have 50 buffers in each pool to have sufficient memory for the test cases.
+--
+void* xmalloc(int size)
+
+xmalloc allocates the memory block to the user.
+In order to give appropriate block to the user, it looks for free memory in pool that would fit best. i.e. would have minimum fragmentation.
+If the pool is full, the program finds the memory in successively increasing buffe-sized pools.
+In case of the memory is full or the requested block exceeds buffer size of any pool, the system prints an error statement.
+
+While allocating the memory, the program updates the total memory allocated and the fragment in the appropriate data structures.
+--
+void xfree(void* ptr)
+
+xfree frees the allocated the memory from appropriate pool.
+While freeing the memoty, it checks for pool id by traversing -4 bytes
+Before calling freebuf(), it checks for fragmentation in the linked list and updates the allocated memory bytes accordingly.
+If the user passes an arbitary pointer, the program handles by printing an error.
+
+--
+const char* xheap_snapshot()
+
+xheap_snapshot gives snapshot of the memory status at that point.
+The function calls the array to get the requested statistics.
+
