@@ -13,11 +13,11 @@ int max_key_size = 64;
 int max_value_size = 1024;
 
 int hash(char* key){
-	int hash = 7;
+	int hash = 1;
 	int i =0;
 	for (i = 0; i < strlen(key); i++) {
-		int temp = key[i];
-		hash = hash*31 + temp;
+		int temp = key[i]-97;
+		hash = hash*3 + temp;
 	}
 	return hash % CACHE_SIZE;
 }
@@ -52,7 +52,7 @@ int kv_set(char* key, char* value){
 		return 1;
 	}
 	// Look for value in the cache	
-	do{	
+	do{
 		if(cache[temp] != NULL && (strcmp(cache[temp]->key , key) ==0)){
 			cache[temp]->count = ++lru_count;
 			cache[temp]->data = value;
@@ -129,8 +129,12 @@ int kv_delete(char* key){
 void kv_reset(){
 	int i = 0;
 	for (i=0; i < CACHE_SIZE; i++){
-		xfree(cache[i]);
-		cache[i] =NULL;
+		if (cache[i] != NULL)
+		{
+			xfree(cache[i]);
+			cache[i] =NULL;
+		}
+
 	}
 }
 

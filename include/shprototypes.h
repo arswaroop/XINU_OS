@@ -88,3 +88,4 @@ extern shellcmd xsh_fstest(int nargs, char *args[]);
 extern shellcmd xsh_hello(int, char *[]);
 extern shellcmd xsh_prodcons(int nargs, char *args[]);
 extern shellcmd xsh_segmem(int nargs, char *args[]);
+extern shellcmd xsh_cache_small(int nargs, char *args[]);
