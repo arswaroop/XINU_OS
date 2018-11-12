@@ -6,8 +6,8 @@
 #include <limits.h>
 
 dataItem* cache[CACHE_SIZE];
-dataItem* garbage[4096];
-int garbage_pointer = 0;
+dataItem* aux[4096];
+int aux_pointer = 0;
 cache_info info = {0, 0, 0, CACHE_SIZE, 0, 0};
 long lru_count = 0;
 int max_key_size = 64;
@@ -123,7 +123,7 @@ int kv_set(char* key, char* value){
 		x->data = value;
 		//printf("Removing key: %s",cache[min_hash]->cal);
 		info.total_set_success++;
-		garbage[garbage_pointer++] = cache[min_hash];
+		aux[aux_pointer++] = cache[min_hash];
 		cache[min_hash] = x;
 		// xmalloc cache[min_hash]
 		return 0;
@@ -166,10 +166,9 @@ void kv_reset(){
 
 	}
 	for (i = 0; i < 4096; i++){
-		if (garbage[i] != NULL){
-			//printf("Deleting garbage  mem\n");
-			xfree(garbage[i]);
-			garbage[i] = NULL;
+		if (aux[i] != NULL){
+			xfree(aux[i]);
+			aux[i] = NULL;
 			d++;
 		}
 	}
@@ -178,7 +177,7 @@ void kv_reset(){
 	info.total_set_success = 0;
 	info.num_keys = 0;	
 	info.total_evictions =0;
-	garbage_pointer =0;
+	aux_pointer =0;
 	lru_count = 0;		
 }
 int get_cache_info(char* kind){
