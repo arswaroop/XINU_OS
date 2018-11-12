@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#define BUF_SIZE 50
+#define BUF_SIZE 1024 
 
 // Initialize an array to save 
 // 1. PoolID
@@ -14,25 +14,28 @@ bpid32 buffers[NUM_BUFFERS][4];
 
 void xmalloc_init()
 {
-	int i = 0;
-	int shift = 1;
-	// Initializing the buffer array to store the above mentioned values.
-	for(i=1; i<=NUM_BUFFERS; i++)
-	{
-		leftover_list head = (leftover_list)getmem(sizeof(struct leftover_block));
-		head->next = NULL;
-		head->bufptr = 0;
-		head->size = 0;
-		
-		buffers[i-1][0] = mkbufpool( 8 *shift, BUF_SIZE);
-		buffers[i-1][1] = 0; // Allocated bytes
-		buffers[i-1][2] = 0; // Allocated buffers
-		buffers[i-1][3] = (uint32) head; // Pointer to linked list
-		if (buffers[i-1][0] == (bpid32)SYSERR)
+	// Initializes only if not initialized before
+	if (buffers[0][3] == NULL){
+		int i = 0;
+		int shift = 1;
+		// Initializing the buffer array to store the above mentioned values.
+		for(i=1; i<=NUM_BUFFERS; i++)
 		{
-			printf("An error occured while allocating buffer!\n");
+			leftover_list head = (leftover_list)getmem(sizeof(struct leftover_block));
+			head->next = NULL;
+			head->bufptr = 0;
+			head->size = 0;
+			
+			buffers[i-1][0] = mkbufpool( 8 *shift, BUF_SIZE);
+			buffers[i-1][1] = 0; // Allocated bytes
+			buffers[i-1][2] = 0; // Allocated buffers
+			buffers[i-1][3] = (uint32) head; // Pointer to linked list
+			if (buffers[i-1][0] == (bpid32)SYSERR)
+			{
+				printf("An error occured while allocating buffer! %d\n", 8*shift);
+			}
+			shift *= 2;
 		}
-		shift *= 2;
 	}
 }
 // Function to allocate memory from appropriate buffer
