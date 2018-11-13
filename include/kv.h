@@ -26,5 +26,6 @@ bool kv_delete(char* key);
 int kv_set(char* key, char* value);
 void kv_reset();
 int kv_init();
-
+char** most_popular_keys(int k);
+int get_cache_info(char* kind);
 #endif

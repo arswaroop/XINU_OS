@@ -1,0 +1,84 @@
+/////////////////////////// In-memory Key-value Store /////////////////////
+// Steps to run //
+1. Compile the xinu by make command
+2. Make qemu
+3. type command 'cache' in xinu shell
+
+-----------Data strucures ------------
+
+The structure is used to save key and value pair.
+
+typedef struct dataItem{
+        char * data;
+        char* key;
+        long count;
+}dataItem;
+
+The structure is maintained to maintain information and stats related to the cache
+typedef struct cache_info{
+        int total_hits;
+        int total_accesses;
+        int total_set_success;
+        int cache_size;
+        int num_keys;
+        int total_evictions;
+}cache_info;
+--
+// Initialize Cache
+extern dataItem* cache[CACHE_SIZE];
+---------------------------------------------
+---------------- Functions ------------------
+
+char* kv_get(char* key);
+bool kv_delete(char* key);
+int kv_set(char* key, char* value);
+void kv_reset();
+int kv_init();
+char** most_popular_keys(int k);
+int get_cache_info(char* kind);
+
+---------------------------------------------
+---------------- Design Choices -------------
+Cache eviction algorithm : LRU
+I have used LRU as my cache replacement policy. In doing so there would be a few cache hits that could save some time.
+For smaller cache sizes around 100, the hit count is really less, and can be improved by implementing other policies such as ARC.
+
+Size of the Cache: 100
+For testing purposes, the size of the cache has been kep to 100. It can be later increased if required. Though there is a upper bound for cache size as number of buffers are limited.
+
+Handling Large keys:
+Large keys or values are not acceptable. They print an error while execution.
+
+Memory allocator: Buffers
+The allocation of the memory is done using xmalloc function implemented in previous assignment.
+---------------- Explaination of functions on kv.c -----------------------------
+-----
+char* kv_get(char* key);
+Returns the required value assigned to the key.
+Does so by trying to find for the key at hash_value first and then iterating through the cache once.
+If not found, returns an error.
+-----
+bool kv_delete(char* key);
+Delets the item if the item is present in cache memory.
+If not, it records as a miss and returns FALSE
+-----
+int kv_set(char* key, char* value);
+1. Looks for the key in the cache, if found replaces it
+2. If not found, looks if cache is empty
+3. Looks for next empty space if empty
+4. Implements LRU and evicts a key-value pair if not empty
+-----
+void kv_reset();
+Resets the cache_info value to 0.
+Frees all the memory  that has been acquired to keep the buffer free.
+-----
+int kv_init();
+Initializes the buffer
+-----
+char** most_popular_keys(int k);
+Iterates through the cache looking for k most popular keys.
+Stores and returns keys in an array of char arrays.
+-----
+int get_cache_info(char* kind);
+Returns requested info in regarding the cache.
+------------------------------------------------------------------

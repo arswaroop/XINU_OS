@@ -5,26 +5,33 @@
 #include <stdio.h>
 #include <limits.h>
 
+
 dataItem* cache[CACHE_SIZE];
 dataItem* aux[4096];
-int aux_pointer = 0;
-cache_info info = {0, 0, 0, CACHE_SIZE, 0, 0};
-long lru_count = 0;
-int max_key_size = 64;
-int max_value_size = 1024;
+int aux_pointer = 0; // For Auxiliary for memory management
+cache_info info = {0, 0, 0, CACHE_SIZE, 0, 0}; // Initializing cache_info
+long lru_count = 0; // LRU count - The count would denote MRU element, while the onw with least value would be considered as LRU element.
+int max_key_size = 64; // Limiting Key Size
+int max_value_size = 1024; // Limiting the value size
 
+
+// Hash function to calculate hash-value
 int hash(char* key){
 	int hash = 1;
 	int i =0;
 	for (i = 0; i < strlen(key); i++) {
 		int temp = key[i];
-		hash = (hash*3) % 1000 + temp;
+		hash = (hash*31) % 1000 + temp;
 	}
 	return hash % CACHE_SIZE;
 }
+
+// Get the value given the key
 char* kv_get(char* key){
-	int hash_val = hash(key);
+	int hash_val = hash(key); // Calculate the hash_value for the given key
 	int temp = hash_val;
+	// Start looking for the key from hash position.
+	// Iteratively look for key until loop once.
 	do{	if(cache[temp] != NULL){
 			if(strcmp(cache[temp]->key, key) == 0){
 				cache[temp]->count = ++lru_count;
@@ -46,6 +53,8 @@ int kv_set(char* key, char* value){
         int hash_val = hash(key);
 	int temp = hash_val;
 	int c=0;
+	// Check the max sizes allowed before allocation
+	// If more than max_size, return error
 	if (sizeof(key) > max_key_size){
 		printf("The size of Key is larger than the limit of 64B, please give a valid key\n");
 		return 1;
@@ -54,7 +63,10 @@ int kv_set(char* key, char* value){
 		printf("The size of Value is larger than the limit of 1KB, Please provide a valid Value");
 		return 1;
 	}
-	// Look for value in the cache	
+	
+	// Looking for empty slot at the hash value.
+	// If not empty, find next empty space in cache.
+	// Iterate once through cache to find a empty value.
 	do{
 		if(cache[temp] != NULL && (strcmp(cache[temp]->key , key) ==0)){
 			cache[temp]->count = ++lru_count;
@@ -133,7 +145,7 @@ int kv_set(char* key, char* value){
 	// If cache
 	return 1;
 }
-
+// Deletes the keu and frees the memory
 bool kv_delete(char* key){
  	int hash_val = hash(key);
         int temp = hash_val;
@@ -151,6 +163,7 @@ bool kv_delete(char* key){
 	return FALSE;
 }
 
+// Resets all the counters and free all the memory acquired
 void kv_reset(){
 	int i = 0;
 	int c = 0;
@@ -180,6 +193,8 @@ void kv_reset(){
 	aux_pointer =0;
 	lru_count = 0;		
 }
+
+// Return the info that has been asked for
 int get_cache_info(char* kind){
 	if(strcmp(kind, "total_hits")==0)
 	{
@@ -197,27 +212,33 @@ int get_cache_info(char* kind){
 	{
 		return info.total_evictions;
 	}
+	printf("Plese input a valid option");
+	return 0;
 
 }
+// Initializes the buffers 
 int kv_init(){
 	xmalloc_init();
 	return 0;
 }
+
+// Gets k most popular keys
 char** most_popular_keys(int k){
 	int i = 0, j = 0, keys_index = 0;
 	int prev_max = INT_MAX;
 	char** keys  = xmalloc(sizeof( *keys) * k); 
-
+	// Iterate k times for the key
 	for(i=0; i< k; i++){
 		int max = 0;
 		char* keyasd[64];
 		for(j=0; j< CACHE_SIZE; j++ )
 		{
+			
 			if(cache[j] !=NULL){
 				if (cache[j]->count > max && cache[j]->count < prev_max){
 					max = cache[j]->count;
-					//printf("%s\n",cache[j]->key);
 					int c=0;
+					// Copy the string to required variable
 					while (cache[j]->key[c] != '\0') {
  						keyasd[c] =cache[j]->key[c];
  						c++;
