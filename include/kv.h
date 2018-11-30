@@ -2,7 +2,7 @@
 #ifndef _KV_H_
 #define _KV_H_
 
-#define CACHE_SIZE 100 
+#define CACHE_SIZE 200 
 typedef struct dataItem{
 	char * data;
 	char* key;

@@ -73,7 +73,6 @@ int kv_set(char* key, char* value){
 			cache[temp]->data = value;
 			if(strcmp(cache[temp]->key, "odzuzdge")==0)
 			{
-				printf("LRU key odzuzdge count = %d \n",cache[temp]->count);
 				return 1;
 			}
 			return 0;

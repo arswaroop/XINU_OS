@@ -1,0 +1,131 @@
+///////////////////////////// Assignment 6 - File System ///////////////////////////////////
+// Steps to run ///
+1. Compile the xinu using 'make' command in /compile directory
+2. Make qemu
+3. Type the command 'fstest' in xinu xsh to test the command
+
+------------------------ Data structures -------------------------
+The structures were defined for the purpose of the assignment, hence we will briefly take a look at some of them.
+
+/*Struct to store file details like state, fileptr*/
+struct filetable {
+  int state;
+  int fileptr;
+  struct dirent *de;
+  struct inode in;
+};
+
+/*Struct to store directory entry*/
+// The structure stores the inode number for the file and the name
+struct dirent {
+  int inode_num;
+  char name[FILENAMELEN];
+};
+
+/*Struct to store directory details*/
+// The structure stores the number of entries and list of files and directories in it.
+struct directory {
+  int numentries;
+  struct dirent entry[DIRECTORY_SIZE];
+};
+
+/*Struct to file system details*/
+// This structure is equivalent to the superblock of ext2 
+// Stores the metadata for the file system
+struct fsystem {
+  int nblocks;
+  int blocksz;
+  int ninodes;
+  int inodes_used;
+  int freemaskbytes;
+  char *freemask;
+  struct directory root_dir;
+};
+
+----------------- Functions ----------------
+int fs_open(char *filename, int flags);
+int fs_close(int fd);
+int fs_create(char *filename, int mode);
+int fs_seek(int fd, int offset);
+int fs_read(int fd, void *buf, int nbytes);
+int fs_write(int fd, void *buf, int nbytes);
+
+------------------ Explanation of the functions and their design -----------------
+fs_create:
+
+Used to create a file in the root directory of the function.
+Steps to create a file:
+1.It does this by first checking for existing files with that filename
+2.Check for free inodes
+3.Call the function fs_get_inode_by_num to get the inode
+4.Set the inode parameters
+5.Add the inode to the open file table
+6.Return the inode number
+
+--
+fs_open:
+
+This function is used to open a file in the file system.
+The steps to open a file are given as follows:
+1. Sanity check - check for a file in the directory
+2. Get the index of file in open file table
+3. Check if file is open
+4. Fetch the inode to save the inode id in open file table(OFT)
+5. Set the file state to OPEN in file table
+6. Return the index of file disctiptor in OFT
+
+--
+fs_close:
+
+This function closes the file
+Steps to close a file
+1. Sanity check if the file is already closed in the file table
+2. Close the file 
+3. Return OK
+
+--
+fs_read:
+
+This function reads first n-bytes in a given buffer
+The steps to read a file are as follows:
+1. Sanity check ro see if a function is open and if file is empty
+2. Calculate the number of data blocks you will have to read
+3. Set the first block to read at beginning of the current block where the file pointer points
+4. Set the offset
+5. Iterate over the blocks
+	5.1 Copy the content to cache
+	5.2 Copy the content to the buffer
+6. Set the file pointer to the latest value
+
+--
+fs_seek:
+
+This function is used to set the position of the file pointer
+The steps to seek a file are as follows:
+1. Sanity check to see if the file is open
+2. Move the pointer forward by the offset provided
+
+-- 
+fs_write:
+
+This function writes the given content to the file mentioned in the function
+The steps to write to a file are as follows:
+1. Sanity check to see if file is open
+2. Clear the previous content in all the blocks
+3. Get the first block to which the function would write
+4. Check if the block is free
+5. Clear the contents of the block
+6. Iterate over required number of blocks
+	6.1 Copy the contents to cache
+	6.2 Append the cache to buffer
+	6.3 Set the mask for given block
+7. Update the open file table and file pointer
+8. Return number of bytes written
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+
+
+
+
+
