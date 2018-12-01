@@ -471,22 +471,6 @@ int fs_write(int fd, void *buf, int nbytes) {
 	}
 	
 	struct inode temp;
-	// Overwrite the previous content
-	// Hence clear the content in the inodes that has been previously set
-	if((oft[fd].in.size) > 0)
-	{
-		temp = oft[fd].in;
-		while(oft[fd].in.size > 0)
-		{
-			if(fs_clearmaskbit(temp.blocks[oft[fd].in.size -1 ]) != OK)
-			{
-				printf("Cannot clear the block. Error in fs_clearmaskbit\n");
-				return SYSERR;
-			}
-			oft[fd].in.size--;
-		}
-	}
-	
 	int blocks_to_write = nbytes/MDEV_BLOCK_SIZE;
 	// Add a block if required
 	if(nbytes % MDEV_BLOCK_SIZE != 0)
