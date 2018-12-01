@@ -496,9 +496,45 @@ int fs_write(int fd, void *buf, int nbytes) {
 	
 	int bytes_to_write = nbytes;
 	
+	int current_block;
+	//Writing ahead of the current file pointer
+	if (oft[fd].fileptr > 0)
+	{
+		current_block = (oft[fd].fileptr/MDEV_BLOCK_SIZE);
+	}
+	int j = oft[fd].in.blocks[current_block];
+	for(i = 0; i<blocks_to_write && j<MDEV_BLOCK_SIZE;i++ )
+	{
+		j = oft[fd].in.blocks[current_block];
+		// Replace the contents of the block
+		if(j == NULL)
+		{
+			break;
+		}
+		// Clearing the block
+		memset(block_cache, NULL, MDEV_BLOCK_SIZE);
+		if(bs_bwrite(0, j, 0, block_cache, MDEV_BLOCK_SIZE) == SYSERR)
+                {
+			printf("Error in writing to the block : bs_bwrite\n");
+			return SYSERR;
+		}	
+		int minBytes = min(MDEV_BLOCK_SIZE, bytes_to_write);
+		// COPYING THE CONTENT FROM BUFFER TO CACHE
+		memcpy(block_cache, buf, minBytes);
+		//WRITING TO THE BLOCKS FROM CACHE			
+		if(bs_bwrite(0, j, 0, block_cache, MDEV_BLOCK_SIZE) == SYSERR)
+		{
+			printf("Error in writing to the block: bs_bwrite \n");
+			return SYSERR;
+		}
+		buf = (char*) buf + minBytes;
+		bytes_to_write -= minBytes;
+		current_block++;
+	}
+	
 	// Get the first block to write the data to
-	int j = FIRST_INODE_BLOCK + NUM_INODE_BLOCKS;
-	for(i=0; i<blocks_to_write && j<MDEV_BLOCK_SIZE; j++)
+	j = FIRST_INODE_BLOCK + NUM_INODE_BLOCKS;
+	for(i=current_block; i<blocks_to_write && j<MDEV_BLOCK_SIZE; j++)
 	{
 		// CHECK IF BLOCK IS FREE
 		if(fs_getmaskbit(j) == 0)
